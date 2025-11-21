@@ -24,3 +24,11 @@ hs_err_pid*
 replay_pid*
 .gradle/
 build/
+
+# Notion 자동화 스크립트 (로컬 전용)
+docs/notion-guide.md
+scripts/add_notion_task.py
+scripts/notion_employee.json
+
+# PDF 파일
+*.pdf
