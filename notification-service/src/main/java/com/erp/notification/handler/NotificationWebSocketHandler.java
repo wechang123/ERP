@@ -62,7 +62,7 @@ public class NotificationWebSocketHandler extends TextWebSocketHandler {
     }
 
     // URL 쿼리 파라미터에서 employeeId 추출
-    // ws://localhost:8084/ws?id={employeeId}
+    // ws://localhost:8080/ws?id={employeeId}
     private String extractEmployeeId(WebSocketSession session) {
         URI uri = session.getUri();
         if (uri != null && uri.getQuery() != null) {
