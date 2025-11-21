@@ -1,0 +1,10 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+
+logging:
+  level:
+    com.erp.notification: DEBUG

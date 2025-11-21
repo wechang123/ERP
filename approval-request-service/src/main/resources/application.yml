@@ -1,0 +1,27 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: approval-request-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/erp_db
+
+services:
+  employee-service:
+    url: http://localhost:8081
+  notification-service:
+    url: http://localhost:8084
+
+grpc:
+  server:
+    port: 9090
+  client:
+    approval-processing-service:
+      address: static://localhost:9091
+      negotiation-type: plaintext
+
+logging:
+  level:
+    com.erp.request: DEBUG
