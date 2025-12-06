@@ -27,8 +27,16 @@ build/
 
 # Notion 자동화 스크립트 (로컬 전용)
 docs/notion-guide.md
-scripts/add_notion_task.py
-scripts/notion_employee.json
+scripts/notion_*.py
+scripts/add_*.py
+scripts/*.json
+
+# Claude 설정 파일 (로컬 전용)
+CLAUDE.md
+.claude/
+
+# Serena 설정 (로컬 전용)
+.serena/
 
 # PDF 파일
 *.pdf

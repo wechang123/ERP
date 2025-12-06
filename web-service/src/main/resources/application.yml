@@ -1,0 +1,21 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: web-service
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+# Backend service URLs
+services:
+  employee-url: http://localhost:8081
+  approval-url: http://localhost:8082
+  processing-url: http://localhost:8083
+  notification-url: http://localhost:8080
+
+logging:
+  level:
+    com.erp.web: DEBUG

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: approval-processing-service
+  namespace: erp-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: approval-processing-service
+  template:
+    metadata:
+      labels:
+        app: approval-processing-service
+    spec:
+      containers:
+        - name: approval-processing-service
+          image: erp/approval-processing-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8083
+            - containerPort: 9091
+          env:
+            - name: GRPC_CLIENT_APPROVAL_REQUEST_SERVICE_ADDRESS
+              value: "static://approval-request-service:9090"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: approval-processing-service
+  namespace: erp-system
+spec:
+  selector:
+    app: approval-processing-service
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083
+    - name: grpc
+      port: 9091
+      targetPort: 9091

@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: approval-request-service
+  namespace: erp-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: approval-request-service
+  template:
+    metadata:
+      labels:
+        app: approval-request-service
+    spec:
+      containers:
+        - name: approval-request-service
+          image: erp/approval-request-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8082
+            - containerPort: 9090
+          env:
+            - name: SPRING_DATA_MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: erp-config
+                  key: MONGODB_URI
+            - name: SERVICES_EMPLOYEE_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: erp-config
+                  key: EMPLOYEE_SERVICE_URL
+            - name: SERVICES_NOTIFICATION_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: erp-config
+                  key: NOTIFICATION_SERVICE_URL
+            - name: GRPC_CLIENT_APPROVAL_PROCESSING_SERVICE_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: erp-config
+                  key: GRPC_PROCESSING_ADDRESS
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: erp-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: approval-request-service
+  namespace: erp-system
+spec:
+  selector:
+    app: approval-request-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+    - name: grpc
+      port: 9090
+      targetPort: 9090

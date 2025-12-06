@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>새 템플릿 - ERP System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-building"></i> ERP System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}"><i class="bi bi-speedometer2"></i> 대시보드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/employees}"><i class="bi bi-people"></i> 직원 관리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/approvals}"><i class="bi bi-file-earmark-text"></i> 결재 요청</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/process/select}"><i class="bi bi-check-circle"></i> 결재 처리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/templates}"><i class="bi bi-journal-bookmark"></i> 템플릿</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h2><i class="bi bi-journal-plus"></i> 새 결재선 템플릿</h2>
+            <p class="text-muted">자주 사용하는 결재선을 템플릿으로 저장하세요</p>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/templates}" method="post" id="templateForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">템플릿 이름 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">설명</label>
+                        <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="createdBy" class="form-label">생성자 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="createdBy" name="createdBy" required>
+                            <option value="">선택하세요</option>
+                            <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.name} + ' (' + ${emp.position} + ')'"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isPublic" name="isPublic" value="true">
+                            <label class="form-check-label" for="isPublic">
+                                공개 템플릿 (다른 사용자도 사용 가능)
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0">결재선 <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addStep">
+                                <i class="bi bi-plus-lg"></i> 결재자 추가
+                            </button>
+                        </div>
+                        <div id="stepsContainer">
+                            <!-- Steps will be added here dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> 저장
+                        </button>
+                        <a th:href="@{/templates}" class="btn btn-secondary">
+                            <i class="bi bi-x-lg"></i> 취소
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-light py-3 mt-auto">
+        <div class="container text-center text-muted">
+            <small>ERP 마이크로서비스 시스템 - 고급 프로그래밍 실습</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const employees = /*[[${employees}]]*/ [];
+        let stepCount = 0;
+
+        function addStep() {
+            stepCount++;
+            const container = document.getElementById('stepsContainer');
+            const stepHtml = `
+                <div class="card mb-2" id="step-${stepCount}">
+                    <div class="card-body py-2">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="badge bg-primary">${stepCount}단계</span>
+                            </div>
+                            <div class="col">
+                                <select class="form-select form-select-sm" name="approverIds" required onchange="updateApproverName(this, ${stepCount})">
+                                    <option value="">결재자 선택</option>
+                                    ${employees.map(emp => `<option value="${emp.id}" data-name="${emp.name}">${emp.name} (${emp.position})</option>`).join('')}
+                                </select>
+                                <input type="hidden" name="approverNames" id="approverName-${stepCount}" value="">
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeStep(${stepCount})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', stepHtml);
+        }
+
+        function removeStep(stepNum) {
+            const step = document.getElementById(`step-${stepNum}`);
+            if (step) {
+                step.remove();
+                renumberSteps();
+            }
+        }
+
+        function renumberSteps() {
+            const steps = document.querySelectorAll('#stepsContainer .card');
+            steps.forEach((step, index) => {
+                const badge = step.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = `${index + 1}단계`;
+                }
+            });
+        }
+
+        function updateApproverName(select, stepNum) {
+            const selectedOption = select.options[select.selectedIndex];
+            const nameInput = document.getElementById(`approverName-${stepNum}`);
+            if (nameInput) {
+                nameInput.value = selectedOption.dataset.name || '';
+            }
+        }
+
+        document.getElementById('addStep').addEventListener('click', addStep);
+
+        // Add first step by default
+        addStep();
+    </script>
+</body>
+</html>

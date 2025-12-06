@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결재선 템플릿 - ERP System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-building"></i> ERP System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}"><i class="bi bi-speedometer2"></i> 대시보드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/employees}"><i class="bi bi-people"></i> 직원 관리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/approvals}"><i class="bi bi-file-earmark-text"></i> 결재 요청</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/process/select}"><i class="bi bi-check-circle"></i> 결재 처리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/templates}"><i class="bi bi-journal-bookmark"></i> 템플릿</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <!-- Alert Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2><i class="bi bi-journal-bookmark"></i> 결재선 템플릿</h2>
+                <p class="text-muted">자주 사용하는 결재선을 템플릿으로 저장하여 재사용할 수 있습니다</p>
+            </div>
+            <a th:href="@{/templates/new}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> 새 템플릿
+            </a>
+        </div>
+
+        <!-- Templates Grid -->
+        <div class="row">
+            <div th:each="template : ${templates}" class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0" th:text="${template.name}">Template Name</h5>
+                        <span th:if="${template.public}" class="badge bg-info">공개</span>
+                        <span th:unless="${template.public}" class="badge bg-secondary">비공개</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted" th:text="${template.description} ?: '설명 없음'">Description</p>
+
+                        <h6>결재선:</h6>
+                        <ol class="list-group list-group-numbered mb-3">
+                            <li th:each="step : ${template.steps}" class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <span th:text="${step.approverName}">Approver Name</span>
+                                </div>
+                                <span class="badge bg-primary rounded-pill" th:text="'Step ' + ${step.step}">Step 1</span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i>
+                                <span th:text="${#temporals.format(template.createdAt, 'yyyy-MM-dd')}">2024-01-01</span>
+                            </small>
+                            <div>
+                                <a th:href="@{/templates/{id}/edit(id=${template.id})}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/templates/{id}/delete(id=${template.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this template?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(templates)}" class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-journal-x fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">등록된 템플릿이 없습니다</p>
+                        <a th:href="@{/templates/new}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg"></i> 첫 템플릿 만들기
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-light py-3 mt-auto">
+        <div class="container text-center text-muted">
+            <small>ERP 마이크로서비스 시스템 - 고급 프로그래밍 실습</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

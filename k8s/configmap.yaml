@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-config
+  namespace: erp-system
+data:
+  # Employee Service
+  EMPLOYEE_SERVICE_URL: "http://employee-service:8081"
+
+  # Approval Request Service
+  APPROVAL_REQUEST_SERVICE_URL: "http://approval-request-service:8082"
+
+  # Approval Processing Service
+  APPROVAL_PROCESSING_SERVICE_URL: "http://approval-processing-service:8083"
+  GRPC_PROCESSING_ADDRESS: "static://approval-processing-service:9091"
+
+  # Notification Service
+  NOTIFICATION_SERVICE_URL: "http://notification-service:8080"
+
+  # Database
+  MONGODB_URI: "mongodb://mongodb:27017/erp_db"
+  MYSQL_HOST: "mysql"
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: "erp_db"
+
+  # Kafka
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"

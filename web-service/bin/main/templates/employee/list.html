@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직원 관리 - ERP System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-building"></i> ERP System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}"><i class="bi bi-speedometer2"></i> 대시보드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/employees}"><i class="bi bi-people"></i> 직원 관리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/approvals}"><i class="bi bi-file-earmark-text"></i> 결재 요청</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/process/select}"><i class="bi bi-check-circle"></i> 결재 처리</a>
+                    </li>
+                </ul>
+                <div class="nav-item dropdown">
+                    <a class="nav-link text-white position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;">
+                        <li class="dropdown-header">알림</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li id="notificationList" class="px-3 py-2 text-muted">알림 없음</li>
+                    </ul>
+                </div>
+                <div class="ms-3">
+                    <select id="currentEmployeeId" class="form-select form-select-sm bg-light">
+                        <option value="">사용자 선택</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <!-- Alert Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-people"></i> 직원 관리</h2>
+            <a th:href="@{/employees/new}" class="btn btn-primary admin-only" id="newEmployeeBtn" style="display: none;">
+                <i class="bi bi-plus-lg"></i> 새 직원 등록
+            </a>
+        </div>
+
+        <!-- Filter -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/employees}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">부서</label>
+                        <select name="department" class="form-select" onchange="this.form.submit()">
+                            <option value="">전체 부서</option>
+                            <option value="개발팀" th:selected="${selectedDepartment == '개발팀'}">개발팀</option>
+                            <option value="경영팀" th:selected="${selectedDepartment == '경영팀'}">경영팀</option>
+                            <option value="인사팀" th:selected="${selectedDepartment == '인사팀'}">인사팀</option>
+                            <option value="IT" th:selected="${selectedDepartment == 'IT'}">IT</option>
+                            <option value="Finance" th:selected="${selectedDepartment == 'Finance'}">Finance</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Employee Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>이름</th>
+                                <th>부서</th>
+                                <th>직급</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="employee : ${employees}">
+                                <td th:text="${employee.id}"></td>
+                                <td th:text="${employee.name}"></td>
+                                <td>
+                                    <span class="badge bg-secondary" th:text="${employee.department}"></span>
+                                </td>
+                                <td th:text="${employee.position}"></td>
+                                <td class="employee-actions">
+                                    <a th:href="@{/employees/{id}/edit(id=${employee.id})}" class="btn btn-sm btn-outline-primary admin-only" style="display: none;">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/employees/{id}/delete(id=${employee.id})}" method="post" style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger admin-only" style="display: none;"
+                                                onclick="return confirm('이 직원을 삭제하시겠습니까?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    <span class="no-permission text-muted small">-</span>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(employees)}">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    직원이 없습니다
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-light py-3 mt-auto">
+        <div class="container text-center text-muted">
+            <small>ERP 마이크로서비스 시스템 - 고급 프로그래밍 실습</small>
+        </div>
+    </footer>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/websocket.js}"></script>
+    <script th:src="@{/js/common.js}"></script>
+    <script>
+        // 권한 체크: 인사팀 또는 팀장 이상만 수정/삭제 가능
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentEmployeeId = sessionStorage.getItem('currentEmployeeId');
+            if (!currentEmployeeId) {
+                console.log('No employee selected in localStorage');
+                return;
+            }
+
+            console.log('Checking permissions for employee ID:', currentEmployeeId);
+            fetch('/api/employees/' + currentEmployeeId)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch employee: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(employee => {
+                    console.log('Employee data:', employee);
+                    const department = (employee.department || '').trim();
+                    const position = (employee.position || '').trim();
+
+                    console.log('Department:', department, 'Position:', position);
+
+                    // 인사팀 소속이거나 팀장/부장/임원/대표 직급인 경우 권한 부여
+                    const isHR = department === '인사팀' || department.toLowerCase() === 'hr';
+                    const managerPositions = ['팀장', '부장', '임원', '대표', '이사', 'manager', 'director', 'executive', 'ceo', 'cto', 'cfo'];
+                    const isManager = managerPositions.some(p => position.toLowerCase().includes(p.toLowerCase()));
+
+                    console.log('Is HR:', isHR, 'Is Manager:', isManager);
+
+                    if (isHR || isManager) {
+                        // 모든 admin-only 요소 표시
+                        document.querySelectorAll('.admin-only').forEach(el => {
+                            el.style.display = '';
+                        });
+                        // no-permission 텍스트 숨김
+                        document.querySelectorAll('.no-permission').forEach(el => {
+                            el.style.display = 'none';
+                        });
+                        console.log('Admin buttons shown');
+                    } else {
+                        console.log('No admin permissions');
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to check user permissions:', error);
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - ERP System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-building"></i> ERP System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/}"><i class="bi bi-speedometer2"></i> 대시보드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/employees}"><i class="bi bi-people"></i> 직원 관리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/approvals}"><i class="bi bi-file-earmark-text"></i> 결재 요청</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/process/select}"><i class="bi bi-check-circle"></i> 결재 처리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/statistics}"><i class="bi bi-graph-up"></i> 통계</a>
+                    </li>
+                </ul>
+                <div class="nav-item dropdown">
+                    <a class="nav-link text-white position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" style="width: 300px;">
+                        <li class="dropdown-header">알림</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li id="notificationList" class="px-3 py-2 text-muted">알림 없음</li>
+                    </ul>
+                </div>
+                <div class="ms-3">
+                    <select id="currentEmployeeId" class="form-select form-select-sm bg-light">
+                        <option value="">사용자 선택</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h2><i class="bi bi-speedometer2"></i> 대시보드</h2>
+            <p class="text-muted">ERP 마이크로서비스 시스템에 오신 것을 환영합니다</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card employees">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">직원 수</h6>
+                                <h2 class="mb-0" th:text="${employeeCount}">0</h2>
+                            </div>
+                            <i class="bi bi-people fs-1 text-primary opacity-50"></i>
+                        </div>
+                        <a th:href="@{/employees}" class="stretched-link"></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card approvals">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">총 결재 건수</h6>
+                                <h2 class="mb-0" th:text="${totalApprovals}">0</h2>
+                            </div>
+                            <i class="bi bi-file-earmark-text fs-1 text-success opacity-50"></i>
+                        </div>
+                        <a th:href="@{/approvals}" class="stretched-link"></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card pending">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">진행 중</h6>
+                                <h2 class="mb-0" th:text="${inProgressCount}">0</h2>
+                            </div>
+                            <i class="bi bi-hourglass-split fs-1 text-warning opacity-50"></i>
+                        </div>
+                        <a th:href="@{/approvals?status=in_progress}" class="stretched-link"></a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card notifications">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-1">승인 완료</h6>
+                                <h2 class="mb-0 text-success" th:text="${approvedCount}">0</h2>
+                            </div>
+                            <i class="bi bi-check-circle fs-1 text-success opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Recent Approvals -->
+            <div class="col-md-8 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 최근 결재 요청</h5>
+                        <a th:href="@{/approvals}" class="btn btn-sm btn-outline-primary">전체 보기</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>번호</th>
+                                        <th>제목</th>
+                                        <th>상태</th>
+                                        <th>생성일</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="approval : ${recentApprovals}">
+                                        <td>
+                                            <a th:href="@{/approvals/{id}(id=${approval.requestId})}"
+                                               th:text="${approval.requestId}"></a>
+                                        </td>
+                                        <td th:text="${approval.title}"></td>
+                                        <td>
+                                            <span th:class="'badge ' + (${approval.finalStatus == 'approved'} ? 'bg-success' :
+                                                                        (${approval.finalStatus == 'rejected'} ? 'bg-danger' : 'bg-info'))"
+                                                  th:text="${approval.finalStatus == 'approved'} ? '승인' : (${approval.finalStatus == 'rejected'} ? '반려' : '진행 중')"></span>
+                                        </td>
+                                        <td th:text="${#temporals.format(approval.createdAt, 'MM-dd HH:mm')}"></td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(recentApprovals)}">
+                                        <td colspan="4" class="text-center text-muted py-3">
+                                            결재 요청이 없습니다
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-lightning"></i> 빠른 작업</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a th:href="@{/employees/new}" class="btn btn-outline-primary">
+                                <i class="bi bi-person-plus"></i> 직원 추가
+                            </a>
+                            <a th:href="@{/approvals/new}" class="btn btn-outline-success">
+                                <i class="bi bi-file-earmark-plus"></i> 새 결재 요청
+                            </a>
+                            <a th:href="@{/process/select}" class="btn btn-outline-warning">
+                                <i class="bi bi-check-circle"></i> 결재 처리
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-hdd-stack"></i> 서비스 상태</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                직원 서비스
+                                <span class="badge bg-success">:8081</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                결재 요청 서비스
+                                <span class="badge bg-success">:8082</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                결재 처리 서비스
+                                <span class="badge bg-success">:8083</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                알림 서비스
+                                <span class="badge bg-success">:8080</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-light py-3 mt-auto">
+        <div class="container text-center text-muted">
+            <small>ERP 마이크로서비스 시스템 - 고급 프로그래밍 실습</small>
+        </div>
+    </footer>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/websocket.js}"></script>
+    <script th:src="@{/js/common.js}"></script>
+    <script>
+        // Refresh dashboard when notification received
+        function refreshPageData() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

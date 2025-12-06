@@ -1,16 +1,16 @@
 package com.erp.processing.controller;
 
-import com.erp.grpc.*;
 import com.erp.processing.dto.ApprovalItem;
 import com.erp.processing.dto.ProcessRequest;
+import com.erp.processing.kafka.ApprovalResultKafkaProducer;
 import com.erp.processing.service.ApprovalQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -20,9 +20,7 @@ import java.util.Optional;
 public class ProcessController {
 
     private final ApprovalQueueService queueService;
-
-    @GrpcClient("approval-request-service")
-    private ApprovalServiceGrpc.ApprovalServiceBlockingStub approvalServiceStub;
+    private final ApprovalResultKafkaProducer kafkaProducer;
 
     // GET /process/{approverId} - 결재자 대기 목록 조회
     @GetMapping("/{approverId}")
@@ -33,7 +31,7 @@ public class ProcessController {
 
     // POST /process/{approverId}/{requestId} - 승인 또는 반려 처리
     @PostMapping("/{approverId}/{requestId}")
-    public ResponseEntity<String> processApproval(
+    public ResponseEntity<Map<String, Object>> processApproval(
             @PathVariable String approverId,
             @PathVariable Integer requestId,
             @RequestBody ProcessRequest request) {
@@ -45,7 +43,10 @@ public class ProcessController {
         Optional<ApprovalItem> itemOpt = queueService.removeFromQueue(approverId, requestId);
 
         if (itemOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("Approval item not found in queue");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "message", "Approval item not found in queue"
+            ));
         }
 
         ApprovalItem item = itemOpt.get();
@@ -59,22 +60,23 @@ public class ProcessController {
             }
         }
 
-        // 2. gRPC로 Approval Request Service에 결과 전달
+        // 2. Kafka로 Approval Request Service에 결과 전달
         try {
-            ApprovalResultRequest resultRequest = ApprovalResultRequest.newBuilder()
-                    .setRequestId(requestId)
-                    .setStep(currentStep)
-                    .setApproverId(Integer.parseInt(approverId))
-                    .setStatus(request.getStatus())
-                    .build();
+            kafkaProducer.sendApprovalResult(requestId, currentStep, Integer.parseInt(approverId), request.getStatus());
+            log.info("Approval result sent to Kafka: requestId={}, step={}, status={}",
+                    requestId, currentStep, request.getStatus());
 
-            ApprovalResultResponse response = approvalServiceStub.returnApprovalResult(resultRequest);
-            log.info("gRPC ReturnApprovalResult response: {}", response.getStatus());
-
-            return ResponseEntity.ok("Processed: " + request.getStatus());
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Processed: " + request.getStatus(),
+                    "requestId", requestId
+            ));
         } catch (Exception e) {
-            log.error("Failed to send result via gRPC", e);
-            return ResponseEntity.internalServerError().body("Failed to process: " + e.getMessage());
+            log.error("Failed to send result via Kafka", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "status", "error",
+                    "message", "Failed to process: " + e.getMessage()
+            ));
         }
     }
 }

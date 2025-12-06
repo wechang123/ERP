@@ -17,13 +17,16 @@ repositories {
 }
 
 ext {
-    grpcVersion = '1.59.0'
+    grpcVersion = '1.60.0'
     protobufVersion = '3.25.1'
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // gRPC
     implementation "io.grpc:grpc-netty-shaded:${grpcVersion}"
@@ -32,8 +35,8 @@ dependencies {
     implementation "com.google.protobuf:protobuf-java:${protobufVersion}"
 
     // gRPC Spring Boot Starter
-    implementation 'net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE'
-    implementation 'net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE'
+    implementation 'net.devh:grpc-server-spring-boot-starter:3.0.0.RELEASE'
+    implementation 'net.devh:grpc-client-spring-boot-starter:3.0.0.RELEASE'
 
     // REST Client for Employee Service
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
