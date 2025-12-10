@@ -24,7 +24,7 @@ public class DashboardController {
 
     @GetMapping("/")
     public String dashboard(Model model) {
-        // Get statistics
+        // 통계 조회
         List<EmployeeDto> employees = employeeApiClient.getAllEmployees();
         List<ApprovalDto> approvals = approvalApiClient.getAllApprovals();
 
@@ -47,7 +47,7 @@ public class DashboardController {
                     .count();
         }
 
-        // Recent approvals (last 5)
+        // 최근 결재 요청 (최대 5개)
         List<ApprovalDto> recentApprovals = approvals != null ?
                 approvals.stream()
                         .sorted((a, b) -> {
@@ -72,10 +72,10 @@ public class DashboardController {
 
     @GetMapping("/statistics")
     public String statistics(Model model) {
-        // Get statistics from API
+        // API에서 통계 조회
         ApprovalStatisticsDto statistics = approvalApiClient.getStatistics();
 
-        // Get employee names for display
+        // 표시용 직원 이름 조회
         List<EmployeeDto> employees = employeeApiClient.getAllEmployees();
 
         model.addAttribute("statistics", statistics);

@@ -25,7 +25,7 @@ public class ApprovalItemDto {
         private String status;
     }
 
-    // Get current pending step for this approver
+    // 이 결재자의 현재 진행 중인 단계 조회
     public Integer getCurrentStep(Integer approverId) {
         if (steps == null) return null;
         return steps.stream()

@@ -81,13 +81,13 @@ public class ApprovalWebController {
             request.setTitle(title);
             request.setContent(content);
 
-            // Parse deadline if provided
+            // 기한이 제공되면 파싱
             if (deadlineStr != null && !deadlineStr.isEmpty()) {
                 LocalDateTime deadline = LocalDateTime.parse(deadlineStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 request.setDeadline(deadline);
             }
 
-            // Convert approverIds to steps
+            // 결재자 ID를 단계로 변환
             List<CreateApprovalDto.StepRequest> steps = new ArrayList<>();
             if (approverIds != null) {
                 for (int i = 0; i < approverIds.size(); i++) {
@@ -100,10 +100,10 @@ public class ApprovalWebController {
             request.setSteps(steps);
 
             approvalApiClient.createApproval(request);
-            redirectAttributes.addFlashAttribute("successMessage", "Approval request created successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "결재 요청이 생성되었습니다");
         } catch (Exception e) {
-            log.error("Failed to create approval request", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create approval request: " + e.getMessage());
+            log.error("결재 요청 생성 실패", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "결재 요청 생성 실패: " + e.getMessage());
         }
         return "redirect:/approvals";
     }
@@ -115,7 +115,7 @@ public class ApprovalWebController {
             return "redirect:/approvals";
         }
 
-        // Get employee names for display (Integer 키로 변환)
+        // 직원 이름을 표시용으로 조회 (Integer 키로 변환)
         List<EmployeeDto> employees = employeeApiClient.getAllEmployees();
         Map<Integer, String> employeeNames = employees.stream()
                 .collect(Collectors.toMap(
@@ -167,7 +167,7 @@ public class ApprovalWebController {
             request.setTitle(title);
             request.setContent(content);
 
-            // Convert approverIds to steps
+            // 결재자 ID를 단계로 변환
             List<CreateApprovalDto.StepRequest> steps = new ArrayList<>();
             if (approverIds != null) {
                 for (int i = 0; i < approverIds.size(); i++) {

@@ -46,10 +46,10 @@ public class EmployeeWebController {
     public String createEmployee(@ModelAttribute EmployeeDto employee, RedirectAttributes redirectAttributes) {
         try {
             employeeApiClient.createEmployee(employee);
-            redirectAttributes.addFlashAttribute("successMessage", "Employee created successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "직원이 등록되었습니다");
         } catch (Exception e) {
-            log.error("Failed to create employee", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create employee: " + e.getMessage());
+            log.error("직원 등록 실패", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "직원 등록 실패: " + e.getMessage());
         }
         return "redirect:/employees";
     }
@@ -84,10 +84,10 @@ public class EmployeeWebController {
                                   RedirectAttributes redirectAttributes) {
         try {
             employeeApiClient.updateEmployee(id, employee);
-            redirectAttributes.addFlashAttribute("successMessage", "Employee updated successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "직원이 수정되었습니다");
         } catch (Exception e) {
-            log.error("Failed to update employee", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to update employee: " + e.getMessage());
+            log.error("직원 수정 실패", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "직원 수정 실패: " + e.getMessage());
         }
         return "redirect:/employees";
     }
@@ -96,10 +96,10 @@ public class EmployeeWebController {
     public String deleteEmployee(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             employeeApiClient.deleteEmployee(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Employee deleted successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "직원이 삭제되었습니다");
         } catch (Exception e) {
-            log.error("Failed to delete employee", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete employee: " + e.getMessage());
+            log.error("직원 삭제 실패", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "직원 삭제 실패: " + e.getMessage());
         }
         return "redirect:/employees";
     }

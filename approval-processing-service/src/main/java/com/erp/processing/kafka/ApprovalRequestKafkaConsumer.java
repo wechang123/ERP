@@ -22,7 +22,7 @@ public class ApprovalRequestKafkaConsumer {
                 event.getRequestId(), event.getTitle());
 
         try {
-            // ApprovalRequestEvent -> ApprovalItem 변환
+            // Kafka 이벤트를 내부 객체로 변환
             ApprovalItem item = ApprovalItem.builder()
                     .requestId(event.getRequestId())
                     .requesterId(event.getRequesterId())

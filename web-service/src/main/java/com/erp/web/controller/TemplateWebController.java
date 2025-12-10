@@ -71,9 +71,9 @@ public class TemplateWebController {
                     .build();
 
             templateApiClient.createTemplate(template);
-            redirectAttributes.addFlashAttribute("successMessage", "Template created successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "템플릿이 생성되었습니다");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create template: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "템플릿 생성 실패: " + e.getMessage());
         }
         return "redirect:/templates";
     }
@@ -121,9 +121,9 @@ public class TemplateWebController {
                     .build();
 
             templateApiClient.updateTemplate(id, template);
-            redirectAttributes.addFlashAttribute("successMessage", "Template updated successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "템플릿이 수정되었습니다");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to update template: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "템플릿 수정 실패: " + e.getMessage());
         }
         return "redirect:/templates";
     }
@@ -132,9 +132,9 @@ public class TemplateWebController {
     public String deleteTemplate(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             templateApiClient.deleteTemplate(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Template deleted successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "템플릿이 삭제되었습니다");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete template: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "템플릿 삭제 실패: " + e.getMessage());
         }
         return "redirect:/templates";
     }
