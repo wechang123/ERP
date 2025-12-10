@@ -1,6 +1,7 @@
 package com.erp.processing.kafka;
 
 import com.erp.processing.dto.ApprovalItem;
+import com.erp.processing.kafka.ApprovalRequestEvent;
 import com.erp.processing.service.ApprovalQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
