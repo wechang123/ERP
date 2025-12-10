@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결재 통계 - ERP System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-building"></i> ERP System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}"><i class="bi bi-speedometer2"></i> 대시보드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/employees}"><i class="bi bi-people"></i> 직원 관리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/approvals}"><i class="bi bi-file-earmark-text"></i> 결재 요청</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/process/select}"><i class="bi bi-check-circle"></i> 결재 처리</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/statistics}"><i class="bi bi-graph-up"></i> 통계</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        <!-- Page Header -->
+        <div class="mb-4">
+            <h2><i class="bi bi-graph-up"></i> 결재 통계 대시보드</h2>
+            <p class="text-muted">결재 현황 및 통계를 한눈에 확인할 수 있습니다</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-2 col-6 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">총 결재</h6>
+                        <h2 class="mb-0 text-primary" th:text="${statistics.totalRequests}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">승인</h6>
+                        <h2 class="mb-0 text-success" th:text="${statistics.approvedCount}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">반려</h6>
+                        <h2 class="mb-0 text-danger" th:text="${statistics.rejectedCount}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">진행 중</h6>
+                        <h2 class="mb-0 text-info" th:text="${statistics.inProgressCount}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">취소</h6>
+                        <h2 class="mb-0 text-secondary" th:text="${statistics.cancelledCount}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6 mb-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">승인율</h6>
+                        <h2 class="mb-0 text-warning" th:text="${#numbers.formatDecimal(statistics.approvalRate, 1, 1)} + '%'">0%</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Status Distribution Chart -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-pie-chart"></i> 결재 상태 분포</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Trend Chart -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-bar-chart"></i> 월별 결재 추이</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Requests by Requester -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> 요청자별 결재 현황</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>요청자 ID</th>
+                                        <th class="text-end">요청 수</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="requesterTable">
+                                    <tr th:if="${statistics.requestsByRequester == null or statistics.requestsByRequester.isEmpty()}">
+                                        <td colspan="2" class="text-center text-muted py-3">데이터 없음</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approvals by Approver -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-person-check"></i> 결재자별 처리 현황</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>결재자 ID</th>
+                                        <th class="text-end">처리 수</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approverTable">
+                                    <tr th:if="${statistics.approvalsByApprover == null or statistics.approvalsByApprover.isEmpty()}">
+                                        <td colspan="2" class="text-center text-muted py-3">데이터 없음</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-light py-3 mt-auto">
+        <div class="container text-center text-muted">
+            <small>ERP 마이크로서비스 시스템 - 고급 프로그래밍 실습</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        // Statistics data from server
+        const statistics = /*[[${statistics}]]*/ {};
+        const employees = /*[[${employees}]]*/ [];
+
+        // Create employee name map
+        const employeeMap = {};
+        employees.forEach(emp => {
+            employeeMap[emp.id] = emp.name;
+        });
+
+        // Status Distribution Pie Chart
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['승인', '반려', '진행 중', '취소'],
+                datasets: [{
+                    data: [
+                        statistics.approvedCount || 0,
+                        statistics.rejectedCount || 0,
+                        statistics.inProgressCount || 0,
+                        statistics.cancelledCount || 0
+                    ],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.8)',
+                        'rgba(220, 53, 69, 0.8)',
+                        'rgba(23, 162, 184, 0.8)',
+                        'rgba(108, 117, 125, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(40, 167, 69, 1)',
+                        'rgba(220, 53, 69, 1)',
+                        'rgba(23, 162, 184, 1)',
+                        'rgba(108, 117, 125, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Monthly Trend Bar Chart
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        const monthlyData = statistics.monthlyTrend || {};
+        const sortedMonths = Object.keys(monthlyData).sort();
+
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: sortedMonths,
+                datasets: [{
+                    label: '결재 건수',
+                    data: sortedMonths.map(month => monthlyData[month] || 0),
+                    backgroundColor: 'rgba(0, 123, 255, 0.8)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // Populate Requester Table
+        const requesterTable = document.getElementById('requesterTable');
+        if (statistics.requestsByRequester && Object.keys(statistics.requestsByRequester).length > 0) {
+            requesterTable.innerHTML = '';
+            Object.entries(statistics.requestsByRequester)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([id, count]) => {
+                    const name = employeeMap[id] || id;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${name} (ID: ${id})</td>
+                        <td class="text-end"><span class="badge bg-primary">${count}</span></td>
+                    `;
+                    requesterTable.appendChild(row);
+                });
+        }
+
+        // Populate Approver Table
+        const approverTable = document.getElementById('approverTable');
+        if (statistics.approvalsByApprover && Object.keys(statistics.approvalsByApprover).length > 0) {
+            approverTable.innerHTML = '';
+            Object.entries(statistics.approvalsByApprover)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([id, count]) => {
+                    const name = employeeMap[id] || id;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${name} (ID: ${id})</td>
+                        <td class="text-end"><span class="badge bg-success">${count}</span></td>
+                    `;
+                    approverTable.appendChild(row);
+                });
+        }
+    </script>
+</body>
+</html>
